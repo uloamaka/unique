@@ -11,7 +11,6 @@ const { adminAuth, userAuth } = require("./middleware/auth.js");
 
 require("dotenv").config();
 app.set("view engine", "ejs");
-// Initialize passport
 app.use(passport.initialize());
 app.use(cookieParser());
 app.use(flash());
@@ -26,7 +25,6 @@ app.use(
     saveUninitialized: false,
   })
 );
-//This line for passport session handling
 app.use(passport.session()); 
 passport.serializeUser(function(user, cb) {
   cb(null, user);
@@ -36,15 +34,15 @@ passport.deserializeUser(function (obj, cb) {
 });
 
 connectDB();
-const V1_Router = require("./routes");
+// const V1_Router = require("./routes");
+const auth = require("./routes/auth")
 
-
-app.use("/api/v1", V1_Router);
+//app.use("/api/v1", V1_Router);
 
 ///////////////////////////////////////////////////////////////////
 //google cb
-// app.use("/auth", auth);
-// // Admin and user routes.
+app.use("/auth", auth);
+// Admin and user routes.
 
 // app.get("/admin", adminAuth, (req, res) => res.send("Admin Route"));
 // app.get("/basic", userAuth, (req, res) => res.send("User Route"));

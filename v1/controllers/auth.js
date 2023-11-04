@@ -8,9 +8,26 @@ const { passport } = require("../utils/GoogleOauth2");
 require("dotenv").config();
 const { z } = require("zod");
 const jwtSecret = process.env.jwtSecret;
+const baseUrl = process.env.baseUrl;
 const User = require("../model/user");
+const {
+  BadRequestError,
+  UnauthenticatedError,
+  NotFoundError,
+} = require("../errors");
 
-const register = async (req, res, next) => {
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+
+const registerUser = async (req, res, next) => {
   const emailSchema = z.string().email("Invalid email format");
   const passwordSchema = z.string().refine((password) => {
     if (password.length < 8) {
@@ -76,7 +93,7 @@ const register = async (req, res, next) => {
     }
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({
-      email: email,
+      email,
       password: hash,
     });
 
@@ -115,7 +132,7 @@ const register = async (req, res, next) => {
   }
 };
 
-const login = async (req, res, next) => {
+const loginUser = async (req, res, next) => {
   const emailSchema = z.string().email("Invalid email format");
   const passwordSchema = z.string().refine((password) => {
     if (password.length < 1) {
@@ -198,7 +215,7 @@ const login = async (req, res, next) => {
     }
   }
 };
-const update = async (req, res, next) => {
+const updateUser = async (req, res, next) => {
   const { role, id } = req.body;
 
   try {
@@ -257,184 +274,182 @@ const deleteUser = async (req, res, next) => {
       .json({ message: "An error occurred", error: error.message });
   }
 };
-// /*  Google AUTH  */
-// const authenticateGoogle = (strategyOptions) => {
-//   return passport.authenticate("google", strategyOptions);
-// };
-// const handleGoogleCallback = async (req, res, next) => {
-//   passport.authenticate("google", async (err, user, info) => {
-//     try {
-//       if (err) {
-//         // Handle error by sending a message
-//         return res
-//           .status(StatusCodes.INTERNAL_SERVER_ERROR)
-//           .json({ message: "Authentication failed. Please try again." });
-//       }
-//       if (!user) {
-//         // Authentication was successful but no user profile available
-//         return res
-//           .status(StatusCodes.NOT_FOUND)
-//           .json({ message: "Authentication succeeded but no user profile." });
-//       }
+/*  Google AUTH  */
+const authenticateGoogle = (strategyOptions) => {
+  return passport.authenticate("google", strategyOptions);
+};
+const handleGoogleCallback = async (req, res, next) => {
+  passport.authenticate("google", async (err, user, info) => {
+    try {
+      if (err) {
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+          status: 500,
+          success: false,
+          message: "Authentication failed. Please try again.",
+        });
+      }
+      if (!user) {
+        return res.status(StatusCodes.NOT_FOUND).json({
+          status: 404,
+          success: false,
+          message: "Authentication succeeded but no user profile.",
+        });
+      }
+      req.login(user, async (loginErr) => {
+        if (loginErr) {
+          return next(loginErr);
+        }
+        const responseObject = {
+          id: user.id,
+          email: user.emails[0].value,
+          username: user.displayName,
+        };
 
-//       // Authentication successful, you can proceed as needed
-//       req.login(user, async (loginErr) => {
-//         if (loginErr) {
-//           return next(loginErr);
-//         }
-//         const responseObject = {
-//           id: user.id,
-//           email: user.emails[0].value,
-//           username: user.displayName,
-//         };
+        const signedUser = new User({
+          email: responseObject.email,
+          password: "",
+          role: "basic",
+        });
 
-//         // Create and save a new user based on the responseObject
-//         bcrypt
-//           .hash(responseObject.email, 10)
-//           .then(async (hash) => {
-//             const signedUser = new User({
-//               email: responseObject.email,
-//               username: responseObject.username,
-//               password: hash,
-//               role: "basic",
-//             });
+        try {
+          const savedUser = await signedUser.save();
+          console.log(savedUser);
+          return res.status(StatusCodes.OK).json({
+            status: 200,
+            success: true,
+            message: "Authentication successful.",
+            // user: savedUser,
+          });
+        } catch (error) {
+          console.error("Error submitting request:", error.message);
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            status: 400,
+            success: false,
+            message: error.message,
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error in authentication callback:", error.message);
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        status: 500,
+        success: false,
+        message: "Internal server error.",
+      });
+    }
+  })(req, res, next);
+};
 
-//             try {
-//               const savedUser = await signedUser.save();
+const emailTemplate = fs.readFileSync("./templates/resetPassword.hbs", "utf-8");
+const compiledTemplate = hbs.compile(emailTemplate);
+const forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
 
-//               return res.status(StatusCodes.OK).json({
-//                 message: "Authentication successful.",
-//                 user: responseObject,
-//               });
-//             } catch (error) {
-//               req.flash("error", "Error submitting request: " + error.message);
-//               console.error("Error submitting request:", error.message);
-//               return res
-//                 .status(StatusCodes.BAD_REQUEST)
-//                 .json({ message: error.message });
-//             }
-//           })
-//           .catch((hashErr) => {
-//             req.flash(
-//               "error",
-//               "Error generating password hash: " + hashErr.message
-//             );
-//             console.error("Error generating password hash:", hashErr.message);
-//             return res
-//               .status(StatusCodes.INTERNAL_SERVER_ERROR)
-//               .json({ message: "Internal server error." });
-//           });
-//       }); // <-- Close the req.login callback
-//     } catch (error) {
-//       console.error("Error in authentication callback:", error.message);
-//       return res
-//         .status(StatusCodes.INTERNAL_SERVER_ERROR)
-//         .json({ message: "Internal server error." });
-//     }
-//   })(req, res, next);
-// };
-// /* FORGET & RESET PASSWORD */
-// // const transporter = nodemailer.createTransport({
-// //   service: "SendGrid",
-// //   auth: {
-// //     user: "your_sendgrid_username", // Replace with your SendGrid username
-// //     pass: "your_sendgrid_password", // Replace with your SendGrid password
-// //   },
-// // });
-// // Compile the Handlebars template
-// const emailTemplate = fs.readFileSync('./templates/resetPassword.hbs', 'utf-8');
-// const compiledTemplate = hbs.compile(emailTemplate);
-// const forgotPassword = async (req, res, next) => {
-//   const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
 
-//   try {
-//     const user = await User.findOne({ email });
+    if (!user) {   
+      throw new NotFoundError("User not found");
+    }
+    const otpToken = jwtSecret + user.password;
+    const resetToken = jwt.sign({ id: user._id, email }, otpToken, {
+      expiresIn: "1h",
+    });
+    let userId = user._id;
+    const resetLink = `${baseUrl}api/v1/auth/reset-password/${userId}/${resetToken}`;
+    console.log(resetLink);
 
-//     if (!user) {
-//       return res
-//         .status(StatusCodes.NOT_FOUND)
-//         .json({ message: "User not found" });
-//     }
+    const emailContent = compiledTemplate({
+      username: user.email,
+      resetLink,
+    });
+    await transporter.sendMail({
+      from: "godsgiftuloamaka235@example.com",
+      to: user.email,
+      subject: "Password Reset",
+      html: emailContent,
+    });
 
-//     // Generate a reset token
-//     const resetToken = jwt.sign(
-//       { id: user._id, email },
-//       jwtSecret,
-//       { expiresIn: "1h" } // Token expires in 1 hour
-//     );
+    res.status(StatusCodes.OK).json({
+      status: 200,
+      success: true,
+      message: "Reset link sent successfully",
+    });
+  } catch (err) {
+   res.status(err.status || 500).json({
+     status: err.status || 500,
+     success: false,
+     message: "Error resetting password",
+     error: err.message,
+   });
+  }
+};
 
-//     // Construct the reset link
-//     const resetLink = `https://your-app-domain.com/reset-password/${resetToken}`;
+const confirmationTemplate = fs.readFileSync(
+  "./templates/confirmationEmail.hbs",
+  "utf-8"
+);
+const compiledConfirmationTemplate = hbs.compile(confirmationTemplate);
 
-//     // Send the reset link via email
-//     await transporter.sendMail({
-//       from: "your-email@example.com",
-//       to: user.email, // Assuming you have an email field in your User model
-//       subject: "Password Reset",
-//       html: compiledTemplate({ username: user.username, resetLink }),
-//     });
+const resetPassword = async (req, res) => {
+  const { resetToken, userId } = req.params;
+  const { newPassword, confirmPassword } = req.body;
 
-//     res
-//       .status(StatusCodes.OK)
-//       .json({ message: "Reset link sent successfully" });
-//     console.log(resetLink);
-//   } catch (err) {
-//     res.status(StatusCodes.BAD_REQUEST).json({
-//       message: "Error sending reset link",
-//       error: err.message,
-//     });
-//   }
-// };
-// Compile the Handlebars template for the confirmation email
-// const confirmationTemplate = fs.readFileSync(
-//   "./templates/confirmationEmail.hbs",
-//   "utf-8"
-// );
-// const compiledConfirmationTemplate = hbs.compile(confirmationTemplate);
+  try {
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    if (!newPassword || !confirmPassword) {
+      throw new BadRequestError(
+        "please enter your new password and confirm password to proceed"
+      );
+    }
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestError("New password and Confirm password must match");
+    }
+    const otpToken = jwtSecret + user.password;
+    const decodedToken = jwt.verify(resetToken, otpToken);
+    const currentTime = Math.floor(Date.now() / 1000);
+    //check if the token is still valid
+    if (decodedToken.exp && decodedToken.exp < currentTime) {
+      throw new UnauthenticatedError("Reset token is expired");
+    }
+   
 
-// const resetPassword = async (req, res, next) => {
-//   const { resetToken, newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-//   try {
-//     const decodedToken = jwt.verify(resetToken, jwtSecret);
-//     const user = await User.findOne({ _id: decodedToken.id });
+    await User.updateOne({ _id: userId }, { password: hashedPassword });
 
-//     if (!user) {
-//       return res
-//         .status(StatusCodes.NOT_FOUND)
-//         .json({ message: "User not found" });
-//     }
+    await transporter.sendMail({
+      from: "your-email@example.com",
+      to: user.email,
+      subject: "Password Reset Confirmation",
+      html: compiledConfirmationTemplate({ username: user.email }),
+    });
 
-//     // Hash the new password
-//     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-//     // Update the user's password
-//     await User.updateOne({ _id: user._id }, { password: hashedPassword });
-
-//     // Send confirmation email
-//     await transporter.sendMail({
-//       from: "your-email@example.com",
-//       to: user.email,
-//       subject: "Password Reset Confirmation",
-//       html: compiledConfirmationTemplate({ username: user.username }),
-//     });
-
-//     res.status(StatusCodes.OK).json({ message: "Password reset successful" });
-//   } catch (err) {
-//     res.status(StatusCodes.BAD_REQUEST).json({
-//       message: "Error resetting password",
-//       error: err.message,
-//     });
-//   }
-// };
+    res.status(StatusCodes.OK).json({
+      status: 200,
+      success: true,
+      message: "Password reset successful",
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      status: err.status || 500,
+      success: false,
+      message: "Error resetting password",
+      error: err.message,
+    });
+  }
+};
 
 module.exports = {
-  register,
-  login,
-  update,
+  registerUser,
+  loginUser,
+  updateUser,
   deleteUser,
-  //   forgotPassword,
-  //   resetPassword,
-  //   authenticateGoogle,
-  //  handleGoogleCallback,
+  forgotPassword,
+  resetPassword,
+  authenticateGoogle,
+  handleGoogleCallback,
 };

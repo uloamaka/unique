@@ -4,13 +4,14 @@ const passport = require("passport");
 
 const GOOGLE_CLIENT_ID = process.env.CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
-
+const baseUrl = process.env.baseUrl;
 // Passport configuration
 const passportConfig = new GoogleStrategy(
   {
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/callback",
+    // callbackURL: `${baseUrl}/auth/v1/google/callback`,
+    callbackURL: `${baseUrl}auth/google/callback`,
   },
   (accessToken, refreshToken, profile, done) => {
     userProfile = profile;
