@@ -6,13 +6,8 @@ const UserSchema = new Mongoose.Schema(
       type: String,
       unique: true,
     },
-    // username: {
-    //   type: String,
-    //   unique: true,
-    // },
     password: {
       type: String,
-      minlength: 6,
     },
     role: {
       type: String,
