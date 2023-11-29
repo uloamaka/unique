@@ -1,68 +1,70 @@
-const { StatusCodes } = require("http-status-codes");
-const Gallery = require("../model/gallery"); // importing the gallery model
+const Gallery = require("../model/gallery");
 const { imageUploader } = require("../utils/cloudinary");
+const { ResourceNotFound, BadRequest } = require("../errors/httpErrors");
+const {
+  RESOURCE_NOT_FOUND,
+  INVALID_REQUEST_PARAMETERS,
+} = require("../errors/httpErrorCodes");
 
-const getGalleryForm = async (req, res) => {
-  try {
-    res.render("gallery")
-      // json("This will be the form page to post a picture ");
-  } catch (err) {
-    const message = err.message || "Error rendering new galliery form";
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message });
-  }
-};
-const getAllGallery = async (req, res) => {
-  try {
-    const galleries = await Gallery.find();
-    res.status(StatusCodes.OK).json(galleries);
-  } catch (err) {
-    res.status(StatusCodes.NOT_FOUND).json({ message: err.message });
-  }
-};
 const createGalleryPost = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No photo provided." });
-    }
-    const { originalname, path } = req.file;
-    const result = await imageUploader(path);
-    console.log(result)
-    // Create a new gallery post in your database
-    const newGalleryPost = new Gallery({
-      name: originalname,
-      imageUrl: result
-    });
+  if (!req.file) {
+    throw new BadRequest("No Picture selected!", INVALID_REQUEST_PARAMETERS);
+  }
+  const { originalname, path } = req.file;
+  const result = await imageUploader(path);
+  const newGalleryPost = new Gallery({
+    name: originalname,
+    imageUrl: result,
+  });
 
-    const savedPost = await newGalleryPost.save();
-    return res
-      .status(StatusCodes.OK)
-      .json({ message: "Gallery post created successfully.", post: savedPost });
-  } catch (error) {
-    console.error("Error creating gallery post:", error);
-    return res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal server error." });
-  }
+  const savedPost = await newGalleryPost.save();
+  return res.created({
+    message: "Gallery post created successfully.",
+    post: savedPost,
+  });
 };
-const getGalleryPostById = async (req, res) => {
-  try {
-    await res.status(StatusCodes.OK).json({ gallery: res.gallery });
-  } catch (err) {
-    res.status(StatusCodes.NOT_FOUND).json({ message: err.message });
+const getAllGalleries = async (req, res) => {
+  const galleries = await Gallery.find();
+  if (!galleries) {
+    throw new ResourceNotFound("No Gallery Post!", RESOURCE_NOT_FOUND);
   }
+  return res.ok(galleries);
+};
+
+const getGalleryPostById = async (req, res) => {
+  const post_id = req.params.id;
+  if (!post_id) {
+    throw new BadRequest("No post ID provided!", INVALID_REQUEST_PARAMETERS);
+  }
+  const galleryPost = await Gallery.findById(post_id);
+  console.log(galleryPost);
+  if (!galleryPost) {
+    throw new ResourceNotFound(
+      `The post with Id:${post_id} Not Found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
+
+  return res.ok(galleryPost);
 };
 const deleteGalleryPost = async (req, res) => {
-  try {
-    await res.gallery.deleteOne();
-    res.json({ message: "Gallery deleted" });
-  } catch {
-    res.status(500).json({ message: err.message });
+  const post_id = req.params.id;
+
+  if (!post_id) {
+    throw new BadRequest("No post ID provided!", INVALID_REQUEST_PARAMETERS);
   }
+  galleryPost = await Gallery.findByIdAndDelete(post_id);
+  if (!galleryPost) {
+    throw new ResourceNotFound(
+      `The post with Id:${post_id} Not Found`,
+      RESOURCE_NOT_FOUND
+    );
+  }
+  return res.noContent({});
 };
 
 module.exports = {
-  getGalleryForm,
-  getAllGallery,
+  getAllGalleries,
   createGalleryPost,
   getGalleryPostById,
   deleteGalleryPost,
