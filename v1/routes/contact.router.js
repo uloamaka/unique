@@ -8,11 +8,9 @@ const paginatedResults = require("../middleware/pagination.middleware");
 // Use the pagination middleware for the /contact route
 router.get("/contact", paginatedResults(Event), contactController.getContactRequests);
 
-router.get("/contact-form", contactController.getContactForm);
 
 router.post("/contact", contactController.createContactRequest);
 
-router.patch("/contact/:id", contactController.updateContactRequest);
-
+router.delete("/:id/delete", contactController.deleteContactRequest)
 
 module.exports = router;
