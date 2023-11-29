@@ -2,6 +2,7 @@ const Mongoose = require("mongoose");
 
 const UserSchema = new Mongoose.Schema(
   {
+    userName: String,
     email: {
       type: String,
       unique: true,
@@ -14,8 +15,16 @@ const UserSchema = new Mongoose.Schema(
       enum: ["admin", "basic"],
       default: "basic",
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  { require: true, timestamps: true }
+  { require: true}
 );
 const User = Mongoose.model("user", UserSchema)
 module.exports = User;

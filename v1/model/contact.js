@@ -40,12 +40,25 @@ const eventSchema = new mongoose.Schema(
       min: 1,
       max: 1000000,
     },
+    requestedDate: String,
+    howYouHeardAboutUs: {
+      type: String,
+      enum: ["social media", "referral", "google","venue report", "other"],
+      default: "other",
+    },
     additionalNote: {
       type: String,
       maxlength: 1000,
       default: "None",
     },
-    requestedDate: String,
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { required: true }
 );
