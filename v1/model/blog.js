@@ -3,7 +3,10 @@ const BlogSchema = new mongoose.Schema(
   {
     title: String,
     Content: String,
-    author: String,
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", 
+    },
     multimedia: {
       type: {
         type: String,
