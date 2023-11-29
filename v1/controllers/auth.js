@@ -1,4 +1,3 @@
-const { StatusCodes } = require("http-status-codes");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
@@ -10,11 +9,7 @@ const { z } = require("zod");
 const jwtSecret = process.env.jwtSecret;
 const baseUrl = process.env.baseUrl;
 const User = require("../model/user");
-const {
-  BadRequestError,
-  UnauthenticatedError,
-  NotFoundError,
-} = require("../errors");
+
 
 const transporter = nodemailer.createTransport({
   service: "gmail",

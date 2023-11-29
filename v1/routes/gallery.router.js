@@ -6,20 +6,18 @@ const getGallery = require("../middleware/galleryFetch.middleware");
 const paginatedResults = require("../middleware/pagination.middleware");
 const {
   getGalleryPostById,
-  getAllGallery,
-  getGalleryForm,
+  getAllGalleries,
   createGalleryPost,
   deleteGalleryPost,
 } = require("../controllers/gallery.controller");
 
-// router.get("/:id", getGallery, getGalleryPostById);
 
-router.get("/form", getGalleryForm);
+router.get("/", paginatedResults(Gallery), getAllGalleries);
 
-router.get("/", paginatedResults(Gallery), getAllGallery);
+router.post("/upload/", multerUploader.single("image"), createGalleryPost);
 
-router.post("/", multerUploader.single("image"), createGalleryPost);
+router.delete("/:id/delete", deleteGalleryPost);
 
-router.delete("/:id", getGallery, deleteGalleryPost);
+router.get("/:id/find", getGalleryPostById);
 
 module.exports = router;

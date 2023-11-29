@@ -1,4 +1,4 @@
-const { StatusCodes } = require("http-status-codes");
+
 
 const handlePaginatedResults = (res, fallbackDataKey, fallbackQuery) => {
   if (res.paginatedResults) {
@@ -12,7 +12,7 @@ const handlePaginatedResults = (res, fallbackDataKey, fallbackQuery) => {
       prevPage,
       [fallbackDataKey]: results,
     };
-    res.status(StatusCodes.OK).json(response);
+    return res.ok(response);
   } else {
     fallbackQuery();
   }

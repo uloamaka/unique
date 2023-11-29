@@ -1,16 +1,17 @@
-const { StatusCodes, getStatusText } = require("http-status-codes");
+const Gallery = require("../model/gallery");
+const { ResourceNotFound, BadRequest } = require("../errors/httpErrors");
+const {
+  RESOURCE_NOT_FOUND,
+  INVALID_REQUEST_PARAMETERS,
+} = require("../errors/httpErrorCodes");
 
 // Middleware to get a gallery by id
 async function getGallery(req, res, next) {
   let gallery;
-  try {
     gallery = await Gallery.findById(req.params.id);
-    if (gallery == null) {
-      return res.status(StatusCodes.NOT_FOUND).json({ message: "Gallery not found" });
+  if (!gallery) {
+      throw new ResourceNotFound("Gallery not found", RESOURCE_NOT_FOUND);
     }
-  } catch (err) {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: err.message });
-  }
   res.gallery = gallery;
   next();
 }
