@@ -1,7 +1,6 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
 const { multerUploader } = require("../utils/cloudinary");
-const Gallery = require("../model/gallery")
+const Gallery = require("../model/gallery");
 const getGallery = require("../middleware/galleryFetch.middleware");
 const paginatedResults = require("../middleware/pagination.middleware");
 const {
@@ -10,7 +9,6 @@ const {
   createGalleryPost,
   deleteGalleryPost,
 } = require("../controllers/gallery.controller");
-
 
 router.get("/", paginatedResults(Gallery), getAllGalleries);
 
