@@ -26,7 +26,7 @@ const getContactRequests = async (req, res) => {
   handlePaginatedResults(res, "CONTACT_REQUEST", async () => {
     const result = await Event.find({});
     return res.ok({
-      CONTACT_REQUEST: result,
+      result,
     });
   });
 };
