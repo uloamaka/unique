@@ -1,5 +1,6 @@
 const Blog = require("../model/blog");
 const { imageUploader } = require("../utils/cloudinary");
+const handlePaginatedResults = require("../utils/handlePaginatedResult");
 const {
   ResourceNotFound,
   BadRequest,
@@ -13,16 +14,13 @@ const {
 const validator = require("../validator/blogPost.validator");
 
 const createBlogPost = async (req, res) => {
-  console.log("Hi!");
   const { error } = validator.blogValidationSchema.validate(req.body);
   if (error) {
     throw new BadRequest(error.message, INVALID_REQUEST_PARAMETERS);
   }
-  console.log("Hi!");
   const { title, content } = req.body;
   const { originalname, path } = req.file;
   const result = await imageUploader(path);
-  console.log(originalname);
   console.log(result);
   const newBlog = new Blog({
     title,
@@ -33,28 +31,30 @@ const createBlogPost = async (req, res) => {
       imageUrl: result.secure_url,
       publicId: result.public_id,
     },
-    author: req.user.name || "unique.dev", 
+    author: "unique.dev",
   });
-  console.log(newBlog)
   const savedBlog = await newBlog.save();
-   console.log(savedBlog);
   if (savedBlog == null) {
     throw ServerError("DB error, try again", DATABASE_ERROR);
   }
-  return re.created({
+  return res.created({
     message: "Blog post saved successfully",
-    blog_post: savedBlog,
+    Blog_post: savedBlog,
   });
 };
 const getAllBlogs = async (req, res) => {
-  const blogs = await Blog.find({});
-  if (!blogs) {
-    throw ResourceNotFound(
-      "No blog post, Try creating one.",
-      RESOURCE_NOT_FOUND
+  handlePaginatedResults(res, "Blog_posts", async () => {
+    const blogs = await Blog.find({});
+    if (!blogs) {
+      throw ResourceNotFound(
+        "No blog post, Try creating one.",
+        RESOURCE_NOT_FOUND
+      );
+    }
+    return res.ok(
+      blogs,
     );
-  }
-  return res.ok(blogs);
+  });
 };
 const getABlogById = async (req, res) => {
   let blogId = req.params.id;
@@ -68,11 +68,12 @@ const getABlogById = async (req, res) => {
   return res.ok(blog);
 };
 const updateBlogTitle = async (req, res) => {
-  const { error } = validator.blogUpdateValidationSchema.validate(req.body);
+  const { title } = req.body;
+  const { error } = validator.blogTitleValidationSchema.validate(req.body);
   if (error) {
     throw new BadRequest(error.message, INVALID_REQUEST_PARAMETERS);
   }
-  const { title } = req.body;
+
   const updatedField = await Blog.findByIdAndUpdate(
     { _id: req.params.id },
     { title, updatedAt: Date.now() },
@@ -87,7 +88,7 @@ const updateBlogTitle = async (req, res) => {
 };
 
 const updateBlogContent = async (req, res) => {
-  const { error } = validator.blogUpdateValidationSchema.validate(req.body);
+  const { error } = validator.blogContentValidationSchema.validate(req.body);
   if (error) {
     throw new BadRequest(error.message, INVALID_REQUEST_PARAMETERS);
   }

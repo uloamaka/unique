@@ -62,7 +62,7 @@ const eventSchema = new mongoose.Schema(
   },
   { required: true }
 );
-eventSchema.plugin(mongoosePaginate); // Apply the mongoose-paginate-v2 plugin
+eventSchema.plugin(mongoosePaginate);
 
 const Event = mongoose.model("Event", eventSchema);
 module.exports = Event;
