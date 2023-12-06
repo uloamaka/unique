@@ -13,8 +13,8 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "unique_uploads", // Optional folder name in Cloudinary
-    allowedFormats: ["jpg", "png"], // Allowed image formats
+    folder: "unique_uploads", 
+    allowedFormats: ["jpg", "png"], 
   },
 });
 
@@ -26,7 +26,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create a multer middleware for file uploads
 const multerUploader = multer({ storage: storage, fileFilter });
 
 const imageUploader = async (path) => {

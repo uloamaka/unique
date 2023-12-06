@@ -1,4 +1,4 @@
-const Gallery = require("../model/gallery");
+const Gallery = require("../models/gallery");
 const { imageUploader } = require("../utils/cloudinary");
 const handlePaginatedResults = require("../utils/handlePaginatedResult");
 const { ResourceNotFound, BadRequest } = require("../errors/httpErrors");

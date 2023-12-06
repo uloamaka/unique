@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 //Input validation using joi.
-const eventValidationSchema = Joi.object({
+const contactValidationSchema = Joi.object({
   clientName: Joi.string().min(2).max(50).required(),
   clientEmail: Joi.string().email().min(5).max(255).required(),
   clientPhone: Joi.string().min(10).max(20).required(),
@@ -13,5 +13,5 @@ const eventValidationSchema = Joi.object({
 });
 
 module.exports = {
-  eventValidationSchema,
+  contactValidationSchema,
 };

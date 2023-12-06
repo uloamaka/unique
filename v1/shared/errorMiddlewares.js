@@ -1,5 +1,4 @@
 const { HttpError } = require("../errors/httpErrors");
-
 function errorLogger(err, req, res, next) {
   if (err instanceof HttpError === false) console.log(err.message);
   next(err);
@@ -21,6 +20,7 @@ function errorHandler(err, req, res, next) {
   if (err.name === "MongoError" && err.code === 11000) {
     return res.error(400, "Resource Already Exists.", err.errorCode);
   }
+
 
   res.error(500, "An unexpected error occured.", "UNEXPECTED_ERROR");
 }

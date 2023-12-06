@@ -1,7 +1,7 @@
 const router = require("express").Router();
-const Event = require("../model/contact");
+const Event = require("../models/contact");
 const contactController = require("../controllers/contact.controller");
-const paginatedResults = require("../middleware/pagination.middleware");
+const paginatedResults = require("../middlewares/pagination.middleware");
 
 // Use the pagination middleware for the /contact route
 router.get(

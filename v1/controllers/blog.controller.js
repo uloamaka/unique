@@ -1,4 +1,4 @@
-const Blog = require("../model/blog");
+const Blog = require("../models/blog");
 const { imageUploader } = require("../utils/cloudinary");
 const handlePaginatedResults = require("../utils/handlePaginatedResult");
 const {
@@ -11,7 +11,7 @@ const {
   RESOURCE_NOT_FOUND,
   INVALID_REQUEST_PARAMETERS,
 } = require("../errors/httpErrorCodes");
-const validator = require("../validator/blogPost.validator");
+const validator = require("../validators/blogPost.validator");
 
 const createBlogPost = async (req, res) => {
   const { error } = validator.blogValidationSchema.validate(req.body);
@@ -62,8 +62,9 @@ const getABlogById = async (req, res) => {
     throw new BadRequest("PostId not provided", INVALID_REQUEST_PARAMETERS);
   }
   const blog = await Blog.findById(blogId);
-  if (!blog) {
-    throw ResourceNotFound("Blog post not found", RESOURCE_NOT_FOUND);
+  console.log(blog)
+  if (blog == null) {
+    throw new ResourceNotFound("Blog post not found", RESOURCE_NOT_FOUND);
   }
   return res.ok(blog);
 };
