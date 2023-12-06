@@ -1,8 +1,8 @@
 const router = require("express").Router();
 const { multerUploader } = require("../utils/cloudinary");
-const Gallery = require("../model/gallery");
-const getGallery = require("../middleware/galleryFetch.middleware");
-const paginatedResults = require("../middleware/pagination.middleware");
+const Gallery = require("../models/gallery");
+const getGallery = require("../middlewares/galleryFetch.middleware");
+const paginatedResults = require("../middlewares/pagination.middleware");
 const {
   getGalleryPostById,
   getAllGalleries,

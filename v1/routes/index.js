@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
 });
 
 router.use("./admin", adminRouter);
-// router.use("/auth", authRouter);
+router.use("/auth", authRouter);
 router.use("/blogs", blogRouter);
 router.use("/contact_us", contactRouter);
 router.use("/galleries", galleryRouter);

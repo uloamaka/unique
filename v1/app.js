@@ -8,10 +8,10 @@ const passport = require("passport");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const { adminAuth, userAuth } = require("./middleware/auth.js");
+const { adminAuth, userAuth } = require("./middlewares/auth.js");
 const V1_Router = require("./routes/index.js");
 const responseUtilities = require("./shared/reponceMiddlewares.js");
-const { errorLogger, errorHandler } = require("./shared/erroMiddlewares.js");
+const { errorLogger, errorHandler } = require("./shared/errorMiddlewares.js");
 const { UNKNOWN_ENDPOINT } = require("./errors/httpErrorCodes.js");
 
 require("dotenv").config();
