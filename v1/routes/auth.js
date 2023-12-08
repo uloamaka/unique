@@ -1,7 +1,5 @@
-const express = require("express");
-const router = express.Router();
-
-const { adminAuth } = require("../middleware/auth");
+const router = require("express").Router();
+const { adminAuth } = require("../middlewares/auth");
 
 const registerUser = require("../controllers/auth");
 
@@ -9,7 +7,7 @@ router.post("/register", registerUser.registerUser);
 
 router.post("/login", registerUser.loginUser);
 
-router.put("/update-role", adminAuth, registerUser.updateUser);
+router.patch("/update-role", adminAuth, registerUser.updateUserRole);
 
 router.delete("/delete-user", adminAuth, registerUser.deleteUser);
 

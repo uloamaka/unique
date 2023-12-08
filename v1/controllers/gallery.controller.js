@@ -1,5 +1,6 @@
-const Gallery = require("../model/gallery");
+const Gallery = require("../models/gallery");
 const { imageUploader } = require("../utils/cloudinary");
+const handlePaginatedResults = require("../utils/handlePaginatedResult");
 const { ResourceNotFound, BadRequest } = require("../errors/httpErrors");
 const {
   RESOURCE_NOT_FOUND,
@@ -23,12 +24,16 @@ const createGalleryPost = async (req, res) => {
     post: savedPost,
   });
 };
+
 const getAllGalleries = async (req, res) => {
-  const galleries = await Gallery.find();
-  if (!galleries) {
-    throw new ResourceNotFound("No Gallery Post!", RESOURCE_NOT_FOUND);
-  }
-  return res.ok(galleries);
+  handlePaginatedResults(res, "Blog_posts", async () => {
+    const galleries = await Gallery.find({});
+    if (!galleries) {
+      throw new ResourceNotFound("No Gallery Post!", RESOURCE_NOT_FOUND);
+    }
+    return res.ok(galleries);
+  })
+
 };
 
 const getGalleryPostById = async (req, res) => {

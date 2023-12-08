@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 const BlogSchema = new mongoose.Schema(
   {
     title: String,
-    Content: String,
+    content: String,
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", 
+      ref: "User",
     },
     multimedia: {
       type: {
@@ -33,7 +34,8 @@ const BlogSchema = new mongoose.Schema(
   },
   { required: true }
 );
+BlogSchema.plugin(mongoosePaginate);
 
-const Blog = mongoose.model("Blog", BlogSchema)
+const Blog = mongoose.model("Blog", BlogSchema);
 
 module.exports = Blog;

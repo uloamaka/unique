@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 
-const eventSchema = new mongoose.Schema(
+const contactSchema = new mongoose.Schema(
   {
     clientName: {
       type: String,
@@ -41,7 +41,7 @@ const eventSchema = new mongoose.Schema(
       max: 1000000,
     },
     requestedDate: String,
-    howYouHeardAboutUs: {
+    referralSource: {
       type: String,
       enum: ["social media", "referral", "google","venue report", "other"],
       default: "other",
@@ -62,7 +62,7 @@ const eventSchema = new mongoose.Schema(
   },
   { required: true }
 );
-eventSchema.plugin(mongoosePaginate); // Apply the mongoose-paginate-v2 plugin
+contactSchema.plugin(mongoosePaginate);
 
-const Event = mongoose.model("Event", eventSchema);
+const Event = mongoose.model("contact", contactSchema);
 module.exports = Event;

@@ -1,14 +1,14 @@
-const Event = require("../model/contact");
+const Event = require("../models/contact");
 const handlePaginatedResults = require("../utils/handlePaginatedResult");
 const { ResourceNotFound, BadRequest } = require("../errors/httpErrors");
 const {
   RESOURCE_NOT_FOUND,
   INVALID_REQUEST_PARAMETERS,
 } = require("../errors/httpErrorCodes");
-const validator = require("../validator/contact.validator");
+const validator = require("../validators/contact.validator");
 
 const createContactRequest = async (req, res) => {
-  const { error } = validator.eventValidationSchema.validate(req.body);
+  const { error } = validator.contactValidationSchema.validate(req.body);
   if (error) {
     throw new BadRequest(error.message, INVALID_REQUEST_PARAMETERS);
   }
@@ -26,7 +26,7 @@ const getContactRequests = async (req, res) => {
   handlePaginatedResults(res, "CONTACT_REQUEST", async () => {
     const result = await Event.find({});
     return res.ok({
-      CONTACT_REQUEST: result,
+      result,
     });
   });
 };
