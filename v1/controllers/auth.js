@@ -28,6 +28,7 @@ const {
   EXISTING_USER_EMAIL,
   EMAIL_ALREADY_VERIFIED,
   MALFORMED_TOKEN,
+  EXPIRED_TOKEN,
 } = require("../errors/httpErrorCodes");
 const validator = require("../validators/formRegister.validator");
 const transporter = nodemailer.createTransport({
@@ -82,6 +83,7 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   const userSchema = z.object({
     email: emailSchema,
+    password: passwordSchema,
   });
 
   const validUser = userSchema.parse(req.body);
@@ -95,6 +97,9 @@ const loginUser = async (req, res, next) => {
     );
   }
   bcrypt.compare(password, user.password, (err, result) => {
+    if (err) {
+      throw new Error("Error comparing passwords");
+    }
     if (result) {
       const maxAge = 3 * 60 * 60;
       const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, {
@@ -114,7 +119,10 @@ const updateUserRole = async (req, res, next) => {
   const { role, user_id } = req.body;
 
   if (!role || !user_id) {
-    throw new BadRequest("Provide user_id and role", INVALID_REQUEST_PARAMETERS);
+    throw new BadRequest(
+      "Provide user_id and role",
+      INVALID_REQUEST_PARAMETERS
+    );
   }
   const user = await User.findById(user_id);
 
@@ -125,11 +133,11 @@ const updateUserRole = async (req, res, next) => {
   if (user.role !== "admin") {
     user.role = role;
     await user.save();
-  } 
-     return res.ok({
-       message: "Update successful",
-       user_role: user.role,
-     });
+  }
+  return res.ok({
+    message: "Update successful",
+    user_role: user.role,
+  });
 };
 const deleteUser = async (req, res, next) => {
   const { user_id } = req.body;
@@ -200,7 +208,7 @@ const forgotPassword = async (req, res, next) => {
   });
   let userId = user._id;
   const resetLink = `${baseUrl}api/v1/auth/reset-password/${userId}/${resetToken}`;
-  // console.log(resetLink);
+  console.log(resetLink);
 
   const emailContent = compiledTemplate({
     username: user.email,
@@ -210,7 +218,7 @@ const forgotPassword = async (req, res, next) => {
     from: "<noreply>unique@outlook.com",
     to: user.email,
     subject: "Password Reset Link",
-    html: emailContent({ username: user.email }),
+    html: emailContent,
   });
   return res.ok("Reset link sent successfully");
 };
@@ -238,11 +246,15 @@ const resetPassword = async (req, res) => {
     );
   }
   const otpToken = jwtSecret + user.password;
-  const decodedToken = jwt.verify(resetToken, otpToken);
+  try {
+    decodedToken = jwt.verify(resetToken, otpToken);
+  } catch (err) {
+    throw new Unauthorized(err.message, MALFORMED_TOKEN);
+  }
   const currentTime = Math.floor(Date.now() / 1000);
   //check if the token is still valid
-  if (decodedToken.exp && decodedToken.exp < currentTime) {
-    throw new UnauthenticatedError("Reset token is expired");
+  if (!decodedToken || (decodedToken.exp && decodedToken.exp < currentTime)) {
+    throw new Unauthorized("Reset token is expired", EXPIRED_TOKEN);
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
