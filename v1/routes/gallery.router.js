@@ -12,7 +12,7 @@ const {
 
 router.get("/", paginatedResults(Gallery), getAllGalleries);
 
-router.post("/upload/", multerUploader.single("image"), createGalleryPost);
+router.post("/upload", multerUploader.single("image"), createGalleryPost);
 
 router.delete("/:id/delete", deleteGalleryPost);
 

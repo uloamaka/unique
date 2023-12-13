@@ -21,7 +21,6 @@ const createBlogPost = async (req, res) => {
   const { title, content } = req.body;
   const { originalname, path } = req.file;
   const result = await imageUploader(path);
-  console.log(result);
   const newBlog = new Blog({
     title,
     content,

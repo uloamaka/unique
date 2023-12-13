@@ -12,6 +12,7 @@ const BlogSchema = new mongoose.Schema(
       type: {
         type: String,
         enum: ["video", "image"],
+        default:"image"
       },
       name: {
         type: String,
