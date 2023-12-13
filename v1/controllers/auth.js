@@ -26,11 +26,9 @@ const {
   RESOURCE_NOT_FOUND,
   INVALID_REQUEST_PARAMETERS,
   EXISTING_USER_EMAIL,
-  EMAIL_ALREADY_VERIFIED,
   MALFORMED_TOKEN,
   EXPIRED_TOKEN,
 } = require("../errors/httpErrorCodes");
-const validator = require("../validators/formRegister.validator");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
