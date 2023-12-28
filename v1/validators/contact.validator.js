@@ -7,7 +7,7 @@ const contactValidationSchema = Joi.object({
   clientPhone: Joi.string().min(10).max(20).required(),
   requestedDate: Joi.date().required(),
   additionalNote: Joi.string().max(1000),
-  howYouHeardAboutUs: Joi.string().required(),
+  referralSource: Joi.string().required(),
   estimatedGuestCount: Joi.number().min(1).required(),
   requestedEventType: Joi.string().min(5).max(255).required(),
 });
