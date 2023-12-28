@@ -58,7 +58,7 @@ app.use((req, res) => {
   res.error(404, "Resource not found", UNKNOWN_ENDPOINT);
 });
 
-const PORT = 3000 || process.env.PORT;
+const PORT = process.env.PORT;
 
 connectDB();
-app.listen(3000, () => console.log(`server started at port: ${PORT}`));
+app.listen(PORT, () => console.log(`server started at port: ${PORT}`));
