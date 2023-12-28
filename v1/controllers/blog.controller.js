@@ -30,7 +30,6 @@ const createBlogPost = async (req, res) => {
       imageUrl: result.secure_url,
       publicId: result.public_id,
     },
-    author: "unique.dev",
   });
   const savedBlog = await newBlog.save();
   if (savedBlog == null) {
@@ -61,7 +60,6 @@ const getABlogById = async (req, res) => {
     throw new BadRequest("PostId not provided", INVALID_REQUEST_PARAMETERS);
   }
   const blog = await Blog.findById(blogId);
-  console.log(blog)
   if (blog == null) {
     throw new ResourceNotFound("Blog post not found", RESOURCE_NOT_FOUND);
   }
