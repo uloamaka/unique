@@ -139,6 +139,13 @@ const updateUserRole = async (req, res, next) => {
 };
 const deleteUser = async (req, res, next) => {
   const { user_id } = req.body;
+  console.log(user_id)
+  if (!req.body.user_id) {
+    throw new BadRequest(
+      "Please ensure a valid user_id is provided",
+      INVALID_REQUEST_PARAMETERS
+    );
+  }
   const user = await User.findByIdAndDelete(user_id);
   if (!user) {
     throw new ResourceNotFound("User does not exist", RESOURCE_NOT_FOUND);
